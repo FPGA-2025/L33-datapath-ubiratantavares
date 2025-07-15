@@ -96,7 +96,11 @@ Utilize os templates fornecidos e execute os testes com o script `./run-all.sh`.
 
 Se necessário, crie casos de teste adicionais para validar sua implementação.
 
-> IMPORTANTE: para que o script de correção funcione corretamente, você deve instanciar a memória com o nome `mem`
+### Observação importante para a correção
+
+Para que o testbench consiga acessar a memória do seu processador e atribuir uma nota, deve haver um padrão de nomes para a memória.
+
+Primeiro: ao instaciar a memória no seu módulo `core_top.v`, use o nome `mem`.
 
 ```verilog
 Memory #(
@@ -105,12 +109,11 @@ Memory #(
 ) mem (
     .clk(),
     .rd_en_i(),
-
-...
-
+    ...
+);
 ```
 
-> IMPORTANTE: para que o script de correção funcione corretamente, você deve criar o array de memória com o nome `memory`
+Segundo: dentro do módulo `memory.v`, o array que armazena os dados deve ter o nome `memory`.
 
 ```verilog
 module Memory #(
@@ -119,12 +122,11 @@ module Memory #(
 )(
     input  wire        clk,
     input  wire        rd_en_i,
-...
+    ...
 );
 
     reg [31:0] memory [0:(MEMORY_SIZE/4)-1];
 ```
----
 
 ## Entrega
 
