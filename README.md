@@ -96,6 +96,34 @@ Utilize os templates fornecidos e execute os testes com o script `./run-all.sh`.
 
 Se necessário, crie casos de teste adicionais para validar sua implementação.
 
+> IMPORTANTE: para que o script de correção funcione corretamente, você deve instanciar a memória com o nome `mem`
+
+```verilog
+Memory #(
+    .MEMORY_FILE(),
+    .MEMORY_SIZE()
+) mem (
+    .clk(),
+    .rd_en_i(),
+
+...
+
+```
+
+> IMPORTANTE: para que o script de correção funcione corretamente, você deve criar o array de memória com o nome `memory`
+
+```verilog
+module Memory #(
+    parameter MEMORY_FILE = "",
+    parameter MEMORY_SIZE = 4096
+)(
+    input  wire        clk,
+    input  wire        rd_en_i,
+...
+);
+
+    reg [31:0] memory [0:(MEMORY_SIZE/4)-1];
+```
 ---
 
 ## Entrega
