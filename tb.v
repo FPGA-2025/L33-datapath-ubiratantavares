@@ -42,7 +42,7 @@ initial begin
         #2;
     end
 
-    #2;
+    #12;
 
 
     if (tb.t.mem.memory[16/4] !== expected_result) begin
