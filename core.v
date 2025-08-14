@@ -22,7 +22,7 @@ module Core #(
     wire [1:0] aluop_w, alu_src_a_w, alu_src_b_w;
 
     // Sinais internos do Datapath
-    reg [31:0] pc_reg, instr_reg, alu_out_reg, memory_data_reg, a_reg, b_reg;
+    reg [31:0] pc_reg, instr_reg, alu_out_reg, memory_data_reg, a_reg, b_reg, pc_ant_reg;
 
     wire [31:0] pc_plus_4_w, pc_target_w, alu_in_a_w, alu_in_b_w, alu_result_w, 
                 rs1_data_w, rs2_data_w, imm_w, data_w;
@@ -104,12 +104,13 @@ module Core #(
             a_reg <= 32'b0;
             b_reg <= 32'b0;
         end else begin
-            if (pc_write_w) 
+            if (pc_write_w || (pc_write_cond_w && alu_zero_w) ) 
             	pc_reg <= (pc_source_w == 1'b0) ? pc_plus_4_w :  pc_target_w;
             	
-            if (ir_write_w) 
+            if (ir_write_w) begin
                 instr_reg <= data_i;
-
+                pc_ant_reg <= pc_reg;
+            end
             // Registradores temporários para o multiciclo
             a_reg <= rs1_data_w;
             b_reg <= rs2_data_w;
@@ -120,11 +121,12 @@ module Core #(
 	
     // Lógica do PC e multiplexadores
     assign pc_plus_4_w  = pc_reg + 4;
-    assign pc_target_w  = pc_reg + imm_w;
+
+    assign pc_target_w  = pc_ant_reg + imm_w;
 
     assign alu_in_a_w = (alu_src_a_w == 2'b00) ? pc_reg :
                         (alu_src_a_w == 2'b01) ? a_reg :
-                        (alu_src_a_w == 2'b10) ? pc_reg : 32'b0;
+                        (alu_src_a_w == 2'b10) ? pc_ant_reg : 32'b0;
 
     assign alu_in_b_w = (alu_src_b_w == 2'b00) ? b_reg :
                         (alu_src_b_w == 2'b01) ? 32'd4 :
@@ -132,18 +134,15 @@ module Core #(
 
     assign data_w = (memory_to_reg_w == 1'b1) ? memory_data_reg : alu_out_reg;
 
-    // Atribuições de saída
-    always @(*) begin
-        addr_reg  = (lorD_w == 1'b0) ? pc_reg : alu_out_reg;
-        rd_en_reg = memory_read_w || (lorD_w == 1'b0); // ler instrução ou dado
-        wr_en_reg = memory_write_w;
-        data_reg  = b_reg;
-    end
+    assign addr_o  = (lorD_w == 0) ? pc_reg : alu_out_reg;
 
-    assign addr_o  = addr_reg;
-    assign rd_en_o = rd_en_reg;
-    assign wr_en_i = wr_en_reg;
-    assign data_o  = data_reg;
+    assign rd_en_o = memory_read_w || (lorD_w == 1'b0); // ler instrução ou dado
+
+    assign wr_en_i = memory_write_w;
+
+    assign data_o  = b_reg;
+
+    
 	
 
 endmodule
